@@ -1,0 +1,18 @@
+
+format_version: 0.1
+
+main_params:
+    mode: check
+routes:
+    - from: vm1-vlan1
+      to: vm1-vlan2
+      port: 9200
+      mode: check
+    - from: vm1-vlan1
+      to: vm1-vlan2
+      port: 9900
+      mode: check
+    - from: vm1-vlan2
+      to: vm1-vlan1
+      port: 22
+      mode: check
