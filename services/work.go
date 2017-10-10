@@ -4,12 +4,17 @@ import (
 	"portchecker/models"
 	"fmt"
 	"errors"
+	"log"
+	"net/http"
 )
 
 func DoWork(config models.Config, hostname string) (int, error) {
 
 
 	actionList, err := MakeActionList(config, hostname)
+
+	// TODO variabilize timeout delay
+	timeout := 120
 
 	if err != nil {
 		return -1, err
@@ -21,7 +26,7 @@ func DoWork(config models.Config, hostname string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	err = CreateMockServers(actionList, &checkResult)
+	err = CreateMockServers(&checkResult, timeout, CreateListenServer)
 
 	if err != nil {
 		return -1, err
@@ -57,13 +62,40 @@ func MakeActionList(config models.Config, hostname string) (models.ActionList, e
 	return actionList, nil
 }
 
-func CreateMockServers(actionList models.ActionList, checkResult *models.CheckResult) error {
-	// TODO
 
+func CreateMockServers(checkResult *models.CheckResult, timeout int, mockFunc func(port int, timeout int, channel chan models.MockServerResult)) error {
+
+	var channels = make(chan models.MockServerResult, len(checkResult.ActionList.ListenOnPort))
+
+	for i:=0; i<len(checkResult.ActionList.ListenOnPort); i++ {
+		go mockFunc(checkResult.ActionList.ListenOnPort[i], timeout, channels)
+	}
+
+	for i:=0; i<len(checkResult.ActionList.ListenOnPort); i++ {
+		mockServerRes := <- channels
+
+		if mockServerRes.Status != 0 {
+			checkResult.NotRequestedPort = append(checkResult.NotRequestedPort, mockServerRes.Port)
+		}
+	}
 	return nil
 }
 
 func TestFlux(actionList models.ActionList, checkResult *models.CheckResult) error {
 	// TODO
 	return nil
+}
+
+
+func CreateListenServer(port int, timeout int, channel chan models.MockServerResult) {
+	http.HandleFunc("/", sayHello) // set router
+	err := http.ListenAndServe(fmt.Sprintf(":%v", port), nil) // set listen port
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
+
+
+func sayHello(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello")
 }

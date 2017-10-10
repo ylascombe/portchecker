@@ -5,6 +5,8 @@ import (
 	"portchecker/utils"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"portchecker/models"
+	"time"
 )
 
 func TestMakeActionListHostnameNotConcerned(t *testing.T) {
@@ -47,4 +49,46 @@ func TestMakeActionList(t *testing.T) {
 	assert.Equal(t, "vm1-vlan2", res.TestFlux[1].To)
 	assert.Equal(t, 9900, res.TestFlux[1].Port)
 
+}
+
+func TestCreateMockServers(t *testing.T) {
+	// arrange
+	actionList := models.ActionList{ListenOnPort:[]int{22, 80, 90}}
+	checkResult := models.CheckResult{
+		ActionList: actionList,
+	}
+	timeout := 5
+
+	mockFunc := func (port int, timeout int, channel chan models.MockServerResult)  {
+		// fmt.Println("wait ", port, "seconds")
+
+		time.Sleep(time.Duration(port) * time.Millisecond )
+
+		if port == 90 {
+		channel <- models.MockServerResult{Port: port, Status: -1}
+		}
+		// fmt.Println("fin ", port)
+
+		channel <- models.MockServerResult{Port: port, Status: 0}
+	}
+	// act
+	err := CreateMockServers(&checkResult, timeout, mockFunc)
+
+	// assert
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(checkResult.NotRequestedPort))
+	assert.Equal(t, 90, checkResult.NotRequestedPort[0])
+}
+
+func TestCreateListenServer(t *testing.T) {
+	// arrange
+	channel := make(chan models.MockServerResult,1)
+	timeout := 5
+
+	// act
+	CreateListenServer(9090, timeout, channel)
+
+	// assert
+	res := <- channel
+	assert.NotNil(t, res)
 }
