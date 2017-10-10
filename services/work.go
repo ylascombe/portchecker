@@ -4,8 +4,7 @@ import (
 	"portchecker/models"
 	"fmt"
 	"errors"
-	"log"
-	"net/http"
+	"portchecker/server"
 )
 
 func DoWork(config models.Config, hostname string) (int, error) {
@@ -26,7 +25,7 @@ func DoWork(config models.Config, hostname string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	err = CreateMockServers(&checkResult, timeout, CreateListenServer)
+	err = CreateMockServers(&checkResult, timeout, server.CreateListenServer)
 
 	if err != nil {
 		return -1, err
@@ -87,15 +86,3 @@ func TestFlux(actionList models.ActionList, checkResult *models.CheckResult) err
 }
 
 
-func CreateListenServer(port int, timeout int, channel chan models.MockServerResult) {
-	http.HandleFunc("/", sayHello) // set router
-	err := http.ListenAndServe(fmt.Sprintf(":%v", port), nil) // set listen port
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
-}
-
-
-func sayHello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello")
-}

@@ -80,15 +80,4 @@ func TestCreateMockServers(t *testing.T) {
 	assert.Equal(t, 90, checkResult.NotRequestedPort[0])
 }
 
-func TestCreateListenServer(t *testing.T) {
-	// arrange
-	channel := make(chan models.MockServerResult,1)
-	timeout := 5
 
-	// act
-	CreateListenServer(9090, timeout, channel)
-
-	// assert
-	res := <- channel
-	assert.NotNil(t, res)
-}
