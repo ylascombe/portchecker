@@ -4,7 +4,7 @@ import (
 	"portchecker/models"
 	"fmt"
 	"errors"
-	"portchecker/server"
+	"portchecker/mock_http_server"
 	"net/http"
 	"io/ioutil"
 )
@@ -18,7 +18,7 @@ func DoWork(config models.Config, hostname string, timeout int) (*models.CheckRe
 
 	checkResult := models.CheckResult{ActionList: actionList}
 
-	err = CreateMockServers(&checkResult, timeout, server.CreateListenServer)
+	err = CreateMockServers(&checkResult, timeout, mock_http_server.CreateListenServer)
 	if err != nil {
 		return nil, err
 	}
