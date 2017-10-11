@@ -9,7 +9,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: portchecker [mode in [check|probe|apiserver|graphviz] ]\n")
+	fmt.Fprintf(os.Stderr, "usage: portchecker [mode in [check-agent|probe-agent|apiserver|graphviz] ]\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
@@ -34,10 +34,10 @@ func main() {
 		os.Exit(1)
 	}
 	switch mode {
-	case "check":
+	case "check-agent":
 		hostname, _ := os.Hostname()
 		services.DoWork(*config, hostname, 20)
-	case "probe":
+	case "probe-agent":
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
 	case "apiserver":
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
