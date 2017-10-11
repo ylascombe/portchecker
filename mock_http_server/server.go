@@ -1,4 +1,4 @@
-package server
+package mock_http_server
 
 import (
 	"fmt"
