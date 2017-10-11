@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 type CheckResult struct {
 	ActionList ActionList
 	NotRequestedPort []int
@@ -7,5 +9,17 @@ type CheckResult struct {
 }
 
 func (checkResult CheckResult) ToString() string {
-	return "TODO"
+	return fmt.Sprintf("CheckResult{ActionList: , NotRequestedPort, %v, NotFunctionnalOutFlux: %v}",
+		checkResult.ActionList,
+		checkResult.NotRequestedPort,
+		checkResult.NotFunctionnalOutFlux)
+}
+func (checkResult CheckResult) PrintResult() string {
+	return fmt.Sprintf("CheckResult{NotRequestedPort, %v, NotFunctionnalOutFlux: %v}",
+		checkResult.NotRequestedPort,
+		checkResult.NotFunctionnalOutFlux)
+}
+
+func (checkResult CheckResult) ErrorNumber() int {
+	return len(checkResult.NotFunctionnalOutFlux) + len(checkResult.NotRequestedPort)
 }

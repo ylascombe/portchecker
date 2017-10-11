@@ -1,15 +1,15 @@
 package main
 
-import "net"
 import "fmt"
 import "flag"
-import "os"
-import "strconv"
-
-// TODO Improve this class, currently, this is a experimental one
+import (
+	"os"
+	"portchecker/services"
+	"portchecker/utils"
+)
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: test-local-port [port number]\n")
+	fmt.Fprintf(os.Stderr, "usage: portchecker [mode in [check|probe|apiserver|graphviz] ]\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
@@ -19,31 +19,36 @@ func main() {
 	flag.Parse()
 
 	args := flag.Args()
-	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "Input port is missing.")
+	if len(args) < 2 {
+		fmt.Fprintf(os.Stderr, "Portchecker mode or config file path are missing .")
 		os.Exit(1)
 	}
 
-	port := args[0]
-	_, err := strconv.ParseUint(port, 10, 16)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Invalid port %q: %s", port, err)
-		os.Exit(1)
-	}
-
-	ln, err := net.Listen("tcp", ":" + port)
+	mode := args[0]
+	configFilePath := args[1]
+	fmt.Println("Starting in", mode, " mode")
+	config, err := utils.UnmarshallFromFile(configFilePath)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Can't listen on port %q: %s", port, err)
+		fmt.Fprintf(os.Stderr, "Cannot load config from given path : %v. Err : %v", configFilePath, err)
+		os.Exit(1)
+	}
+	switch mode {
+	case "check":
+		hostname, _ := os.Hostname()
+		services.DoWork(*config, hostname, 20)
+	case "probe":
+		fmt.Fprintf(os.Stderr, "Not implemented\n")
+	case "apiserver":
+		fmt.Fprintf(os.Stderr, "Not implemented\n")
+	case "graphviz":
+		fmt.Fprintf(os.Stderr, "Not implemented\n")
+
+	default:
+		fmt.Fprintf(os.Stderr, "Invalid mode %s\n", mode)
 		os.Exit(1)
 	}
 
-	err = ln.Close()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Couldn't stop listening on port %q: %s", port, err)
-		os.Exit(1)
-	}
 
-	fmt.Printf("TCP Port %q is available", port)
 	os.Exit(0)
 }

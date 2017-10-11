@@ -9,34 +9,33 @@ import (
 	"io/ioutil"
 )
 
-func DoWork(config models.Config, hostname string) (int, error) {
-
+func DoWork(config models.Config, hostname string, timeout int) (*models.CheckResult, error) {
 
 	actionList, err := MakeActionList(config, hostname)
-
-	// TODO variabilize timeout delay
-	timeout := 120
-
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
 
 	checkResult := models.CheckResult{ActionList: actionList}
-	err = TestFlux(&checkResult)
 
-	if err != nil {
-		return -1, err
-	}
 	err = CreateMockServers(&checkResult, timeout, server.CreateListenServer)
-
 	if err != nil {
-		return -1, err
+		return nil, err
 	}
-	nbErrors := len(checkResult.NotFunctionnalOutFlux) + len(checkResult.NotRequestedPort)
-	if nbErrors > 0 {
-		return nbErrors, errors.New(fmt.Sprintf("At least an error has occured, errors details : %v", checkResult.ToString()))
+
+	err = TestFlux(&checkResult)
+	if err != nil {
+		return nil, err
 	}
-	return 0, nil
+
+	if checkResult.ErrorNumber() > 0 {
+		return &checkResult, errors.New(
+			fmt.Sprintf("%v error has occured, errors details : %v",
+			checkResult.ErrorNumber(),
+			checkResult.PrintResult(),
+		))
+	}
+	return &checkResult, nil
 }
 
 func MakeActionList(config models.Config, hostname string) (models.ActionList, error) {
