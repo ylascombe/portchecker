@@ -20,7 +20,7 @@ routes:
 ...`
 
 func TestParseConfig(t *testing.T) {
-	config, err := unmarshall([]byte(YAML))
+	config, err := Unmarshall([]byte(YAML))
 	assert.Nil(t, err)
 	assert.Equal(t, "0.1", config.FormatVersion)
 	assert.Equal(t, 1, len(config.Routes))
@@ -28,7 +28,7 @@ func TestParseConfig(t *testing.T) {
 }
 
 func TestParseConfigRoutes(t *testing.T) {
-	config, err := unmarshall([]byte(YAML))
+	config, err := Unmarshall([]byte(YAML))
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(config.Routes))
 	assert.Equal(t, "vm-from", config.Routes[0].From)

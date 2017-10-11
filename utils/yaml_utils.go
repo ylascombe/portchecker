@@ -9,7 +9,7 @@ import (
 	"portchecker/models"
 )
 
-func unmarshall(yamlText []byte) (*models.Config, error) {
+func Unmarshall(yamlText []byte) (*models.Config, error) {
 	var config models.Config
 	var err = yaml.Unmarshal(yamlText, &config)
 	if err != nil {
@@ -27,7 +27,7 @@ func UnmarshallFromFile(filePath string) (*models.Config, error) {
 		log.Fatal(err)
 	}
 
-	config, err := unmarshall([]byte(data))
+	config, err := Unmarshall([]byte(data))
 
 	if err != nil {
 		return nil, err
