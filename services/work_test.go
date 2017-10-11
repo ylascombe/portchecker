@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"portchecker/models"
 	"time"
+	"net"
 )
 
 func TestMakeActionListHostnameNotConcerned(t *testing.T) {
@@ -81,3 +82,28 @@ func TestCreateMockServers(t *testing.T) {
 }
 
 
+func TestTestFlux(t *testing.T) {
+	// arrange
+	res, _ := net.LookupHost("google.fr")
+
+	fmt.Println(res)
+	routesToTest := []models.Route{}
+
+	existingRoute := models.Route{To: res[1], Port: 80}
+	routesToTest = append(routesToTest, existingRoute)
+
+	unexistingRoute  := models.Route{To: "127.0.0.1", Port: 1}
+	routesToTest = append(routesToTest, unexistingRoute)
+
+	actionList := models.ActionList{TestFlux:routesToTest}
+	checkResult := models.CheckResult{
+		ActionList: actionList,
+	}
+
+	// act
+	err := TestFlux(&checkResult)
+
+	// assert
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(checkResult.NotFunctionnalOutFlux))
+}
