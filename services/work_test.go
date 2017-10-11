@@ -8,6 +8,7 @@ import (
 	"portchecker/models"
 	"time"
 	"net"
+	"net/http"
 )
 
 func TestMakeActionListHostnameNotConcerned(t *testing.T) {
@@ -106,4 +107,85 @@ func TestTestFlux(t *testing.T) {
 	// assert
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(checkResult.NotFunctionnalOutFlux))
+}
+
+func TestDoWorkWhenOK(t *testing.T) {
+	// arrange
+	YAML := `
+format_version: 0.1
+
+default:
+    mode: check
+routes:
+    # Test request
+    - from: vm1-vlan1
+      to: google.fr
+      port: 80
+      mode: check
+    # Test request
+    # - from: vm1-vlan1
+    #  to: google.fr
+    #  port: 443
+    #  mode: check
+    # Test mock server
+    - from: vm2-vlan2
+      to: vm1-vlan1
+      port: 9090
+      mode: check
+...`
+	config, err := utils.Unmarshall([]byte(YAML))
+
+	f := func() {
+		time.Sleep(2 * time.Second)
+		http.Get("http://127.0.0.1:9090")
+	}
+	// act
+	go f()
+	checkResult, err := DoWork(*config, "vm1-vlan1", 10)
+
+	// assert
+	assert.Nil(t, err)
+	assert.NotNil(t, checkResult)
+	assert.Equal(t, 0, checkResult.ErrorNumber())
+}
+
+func TestDoWorkWhenKOBecauseOUtFlux(t *testing.T) {
+	// arrange
+	YAML := `
+format_version: 0.1
+
+default:
+    mode: check
+routes:
+    # Test request
+    - from: vm1-vlan1
+      to: google.fr
+      port: 80
+      mode: check
+    # Test request
+    - from: vm1-vlan1
+      to: google.fr
+      port: 600
+      mode: check
+    # Test mock server
+    - from: vm2-vlan2
+      to: vm1-vlan1
+      port: 9090
+      mode: check
+...`
+	config, err := utils.Unmarshall([]byte(YAML))
+
+	f := func() {
+		time.Sleep(2 * time.Second)
+		http.Get("http://127.0.0.1:9090")
+	}
+	// act
+	go f()
+	checkResult, err := DoWork(*config, "vm1-vlan1", 10)
+
+	// assert
+	assert.NotNil(t, err)
+	assert.NotNil(t, checkResult)
+	assert.Equal(t, 1, checkResult.ErrorNumber())
+
 }
