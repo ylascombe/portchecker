@@ -6,6 +6,7 @@ import (
 	"os"
 	"portchecker/services"
 	"portchecker/utils"
+	"portchecker/module"
 )
 
 func usage() {
@@ -41,6 +42,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
 	case "apiserver":
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
+		module.StartApiServer()
+
 	case "graphviz":
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
 

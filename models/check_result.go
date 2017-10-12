@@ -1,6 +1,8 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type CheckResult struct {
 	ActionList ActionList
