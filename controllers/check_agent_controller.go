@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"portchecker/db_models"
 	"portchecker/services"
+	"fmt"
 )
 
 func FetchAllCheckAgent(c *gin.Context) {
@@ -31,4 +32,36 @@ func FetchAllCheckAgent(c *gin.Context) {
 		_checkAgents = append(_checkAgents, *tmp)
 	}
 	c.JSON(http.StatusOK, _checkAgents)
+}
+
+
+func CreateCheckAgentReport(c *gin.Context) {
+
+	var checkAgentJSON db_models.CheckAgent
+
+	err := c.BindJSON(&checkAgentJSON)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status" : http.StatusBadRequest,
+			"message" : "Invalid request.",
+			"error detail": err,
+		})
+	} else {
+		res, err := services.CreateCheckAgentReport(checkAgentJSON)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status" : http.StatusInternalServerError,
+				"message" : "Error while creating check agent report", "error detail": err,
+				},
+			)
+		} else {
+			c.JSON(http.StatusCreated, gin.H{
+				"status" : http.StatusCreated,
+				"message" : "Check agent report created successfully!",
+				"Location": fmt.Sprintf("/v1/check_agent/%v", res.ID),
+				"checkAgentID": res.ID,
+			})
+		}
+	}
 }

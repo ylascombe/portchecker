@@ -28,7 +28,7 @@ func StartApiServer() {
 	hostname := router.Group("/v1/check_agents")
 	{
 		hostname.GET("/", controllers.FetchAllCheckAgent)
-		//hostname.POST("/:user-id", controllers.CreateMembership)
+		hostname.POST("/:id", controllers.CreateCheckAgentReport)
 	}
 
 	router.Run(":8090")
