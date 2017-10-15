@@ -11,7 +11,7 @@ type CheckResult struct {
 }
 
 func (checkResult CheckResult) ToString() string {
-	return fmt.Sprintf("CheckResult{ActionList: , NotRequestedPort, %v, NotFunctionnalOutFlux: %v}",
+	return fmt.Sprintf("CheckResult{ActionList: %v, NotRequestedPort, %v, NotFunctionnalOutFlux: %v}",
 		checkResult.ActionList,
 		checkResult.NotRequestedPort,
 		checkResult.NotFunctionnalOutFlux)

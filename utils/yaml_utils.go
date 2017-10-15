@@ -40,7 +40,7 @@ func Marshall(in interface{}) string {
 	d, err := yaml.Marshal(in)
 	result := string(d)
 	if err != nil {
-		err_msg := fmt.Sprintf("Error when marshalling object ", in, err)
+		err_msg := fmt.Sprintf("Error when marshalling object {%v}. Err: %v", in, err)
 		fmt.Println(err_msg)
 		//return nil, errors.New(err_msg)
 	}
