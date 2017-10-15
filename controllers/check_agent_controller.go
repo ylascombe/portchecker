@@ -3,12 +3,12 @@ package controllers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"portchecker/models"
+	"portchecker/db_models"
 	"portchecker/services"
 )
 
 func FetchAllCheckAgent(c *gin.Context) {
-	var _checkAgents []models.TransformedCheckAgent
+	var _checkAgents []db_models.TransformedCheckAgent
 
 	checkAgents, err := services.ListCheckAgent()
 
@@ -22,12 +22,12 @@ func FetchAllCheckAgent(c *gin.Context) {
 
 	if (len(*checkAgents) <= 0) {
 		// choice : if no item found, return a HTTP status code 200 with an empty array
-		_checkAgents = make([]models.TransformedCheckAgent, 0)
+		_checkAgents = make([]db_models.TransformedCheckAgent, 0)
 	}
 
 	//transforms check agent
 	for _, item := range *checkAgents {
-		tmp := models.TransformCheckAgent(item)
+		tmp := db_models.TransformCheckAgent(item)
 		_checkAgents = append(_checkAgents, *tmp)
 	}
 	c.JSON(http.StatusOK, _checkAgents)

@@ -1,15 +1,15 @@
 package services
 
 import (
-	"portchecker/models"
 	"portchecker/database"
+	"portchecker/db_models"
 )
 
-func ListCheckAgent() (*[]models.CheckAgent, error) {
+func ListCheckAgent() (*[]db_models.CheckAgent, error) {
 	db := database.NewDBDriver()
 	defer db.Close()
 
-	var checkAgent []models.CheckAgent
+	var checkAgent []db_models.CheckAgent
 	err := db.Find(&checkAgent).Error
 
 	return &checkAgent, err

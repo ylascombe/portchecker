@@ -3,7 +3,7 @@ package database
 import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"portchecker/models"
+	"portchecker/db_models"
 )
 
 type Driver struct {
@@ -22,7 +22,7 @@ func NewDBDriver() *gorm.DB {
 func AutoMigrateDB(db *gorm.DB) {
 
 	// Migrate the schema
-	db.AutoMigrate(&models.CheckAgent{})
-	db.AutoMigrate(&models.CheckAgentInFlux{})
-	db.AutoMigrate(&models.CheckAgentOutFlux{})
+	db.AutoMigrate(&db_models.CheckAgent{})
+	db.AutoMigrate(&db_models.CheckAgentInFlux{})
+	db.AutoMigrate(&db_models.CheckAgentOutFlux{})
 }

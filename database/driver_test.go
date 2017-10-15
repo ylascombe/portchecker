@@ -1,9 +1,9 @@
 package database
 
 import (
-	"portchecker/models"
 	"testing"
 	"github.com/stretchr/testify/assert"
+	"portchecker/db_models"
 )
 
 var (
@@ -16,13 +16,13 @@ func TestInsert(t *testing.T) {
 	defer db.Close()
 
 	// Migrate the schema
-	db.AutoMigrate(&models.CheckAgent{})
+	db.AutoMigrate(&db_models.CheckAgent{})
 
 	// Create
-	db.Create(&models.CheckAgent{Hostname: "local"})
+	db.Create(&db_models.CheckAgent{Hostname: "local"})
 
 	// Read
-	var agent models.CheckAgent
+	var agent db_models.CheckAgent
 	res := db.First(&agent, "Hostname = ?", "local")
 
 	assert.NotNil(t, res)
