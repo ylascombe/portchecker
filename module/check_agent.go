@@ -1,4 +1,4 @@
-package services
+package module
 
 import (
 	"portchecker/models"
@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 )
 
-func DoWork(config models.Config, hostname string, timeout int) (*models.CheckResult, error) {
+func StartCheckAgent(config models.Config, hostname string, timeout int) (*models.CheckResult, error) {
 
 	actionList, err := MakeActionList(config, hostname)
 	if err != nil {

@@ -1,4 +1,4 @@
-package services
+package module
 
 import (
 	"testing"
@@ -109,7 +109,7 @@ func TestTestFlux(t *testing.T) {
 	assert.Equal(t, 1, len(checkResult.NotFunctionnalOutFlux))
 }
 
-func TestDoWorkWhenOK(t *testing.T) {
+func TestStartCheckAgentWhenOK(t *testing.T) {
 	// arrange
 	YAML := `
 format_version: 0.1
@@ -141,7 +141,7 @@ routes:
 	}
 	// act
 	go f()
-	checkResult, err := DoWork(*config, "vm1-vlan1", 10)
+	checkResult, err := StartCheckAgent(*config, "vm1-vlan1", 10)
 
 	// assert
 	assert.Nil(t, err)
@@ -149,7 +149,7 @@ routes:
 	assert.Equal(t, 0, checkResult.ErrorNumber())
 }
 
-func TestDoWorkWhenKOBecauseOUtFlux(t *testing.T) {
+func TestStartCheckAgentWhenKOBecauseOUtFlux(t *testing.T) {
 	// arrange
 	YAML := `
 format_version: 0.1
@@ -181,7 +181,7 @@ routes:
 	}
 	// act
 	go f()
-	checkResult, err := DoWork(*config, "vm1-vlan1", 10)
+	checkResult, err := StartCheckAgent(*config, "vm1-vlan1", 10)
 
 	// assert
 	assert.NotNil(t, err)

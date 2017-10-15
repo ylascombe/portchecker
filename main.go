@@ -1,12 +1,11 @@
 package main
 
-import "fmt"
-import "flag"
 import (
 	"os"
-	"portchecker/services"
 	"portchecker/utils"
 	"portchecker/module"
+	"fmt"
+	"flag"
 )
 
 func usage() {
@@ -37,7 +36,7 @@ func main() {
 	switch mode {
 	case "check-agent":
 		hostname, _ := os.Hostname()
-		services.DoWork(*config, hostname, 20)
+		module.StartCheckAgent(*config, hostname, 20)
 	case "probe-agent":
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
 	case "apiserver":
