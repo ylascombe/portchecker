@@ -25,10 +25,10 @@ func StartApiServer() {
 	}))
 
 
-	hostname := router.Group("/v1/check_agents")
+	hostname := router.Group("/v1/hostname/:hostname/check_agents")
 	{
 		hostname.GET("/", controllers.FetchAllCheckAgent)
-		hostname.POST("/:id", controllers.CreateCheckAgentReport)
+		hostname.POST("/", controllers.CreateCheckAgentReport)
 	}
 
 	router.Run(":8090")

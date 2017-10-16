@@ -37,6 +37,8 @@ func FetchAllCheckAgent(c *gin.Context) {
 
 func CreateCheckAgentReport(c *gin.Context) {
 
+	hostname := c.Param("hostname")
+	fmt.Println("Create checkAgent result for hostname", hostname)
 	var checkAgentJSON db_models.CheckAgent
 
 	err := c.BindJSON(&checkAgentJSON)
@@ -47,8 +49,8 @@ func CreateCheckAgentReport(c *gin.Context) {
 			"error detail": err,
 		})
 	} else {
-		res, err := services.CreateCheckAgentReport(checkAgentJSON)
-
+		checkAgentJSON.Hostname = hostname
+		checkAgent, err := services.CreateCheckAgentReport(checkAgentJSON)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"status" : http.StatusInternalServerError,
@@ -57,10 +59,10 @@ func CreateCheckAgentReport(c *gin.Context) {
 			)
 		} else {
 			c.JSON(http.StatusCreated, gin.H{
-				"status" : http.StatusCreated,
-				"message" : "Check agent report created successfully!",
-				"Location": fmt.Sprintf("/v1/check_agent/%v", res.ID),
-				"checkAgentID": res.ID,
+				"status" :      http.StatusCreated,
+				"message" :     "Check agent report created successfully!",
+				"Location":     fmt.Sprintf("/v1/hostname/%v/check_agent/%v", hostname, checkAgent.ID),
+				"checkAgentID": checkAgent.ID,
 			})
 		}
 	}

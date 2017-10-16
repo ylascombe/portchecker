@@ -21,7 +21,7 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	serverUrl := "http://localhost:8090/v1/check_agents/10"
+	serverUrl := "http://localhost:8090/v1/hostname/%v/check_agents/"
 	args := flag.Args()
 	if len(args) < 2 {
 		fmt.Fprintf(os.Stderr, "Portchecker mode or config file path are missing .")
@@ -30,7 +30,7 @@ func main() {
 
 	mode := args[0]
 	configFilePath := args[1]
-	fmt.Println("Starting in", mode, " mode")
+	fmt.Println("Ask to start in", mode, " mode")
 	config, err := utils.UnmarshallFromFile(configFilePath)
 
 	if err != nil {
@@ -51,7 +51,8 @@ func main() {
 		fmt.Println("")
 		res, _ := json.Marshal(checkAgent)
 
-		postRes, err := http.Post(serverUrl, "application/json", bytes.NewBuffer(res))
+		finalUrl := fmt.Sprintf(serverUrl, hostname)
+		postRes, err := http.Post(finalUrl, "application/json", bytes.NewBuffer(res))
 		fmt.Fprintf(os.Stdout, "POST Result \n%v. Err %v", postRes, err)
 
 		fmt.Println("")
