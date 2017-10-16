@@ -5,6 +5,7 @@ import "portchecker/gorm_custom"
 type CheckAgentInFlux struct {
 	gorm_custom.GormModelCustom
 
+	CheckAgentID uint
 	From string `json:"from" yaml:"from"`
 	Port int `json:"port" yaml:"port"`
 	Requested bool `json:"requested" yaml:"requested"`
