@@ -6,6 +6,9 @@ import (
 	"portchecker/module"
 	"fmt"
 	"flag"
+	"encoding/json"
+	"net/http"
+	"bytes"
 )
 
 func usage() {
@@ -18,6 +21,7 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
+	serverUrl := "http://localhost:8090/v1/check_agents/10"
 	args := flag.Args()
 	if len(args) < 2 {
 		fmt.Fprintf(os.Stderr, "Portchecker mode or config file path are missing .")
@@ -36,7 +40,25 @@ func main() {
 	switch mode {
 	case "check-agent":
 		hostname, _ := os.Hostname()
-		module.StartCheckAgent(*config, hostname, 20)
+		checkResult, err := module.StartCheckAgent(*config, hostname, 20)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "An error occurred %v", err)
+		}
+
+		checkAgent, err := module.ProcessCheckAgentResult(*config, *checkResult, hostname)
+		fmt.Println("")
+		fmt.Println("")
+		res, _ := json.Marshal(checkAgent)
+
+		postRes, err := http.Post(serverUrl, "application/json", bytes.NewBuffer(res))
+		fmt.Fprintf(os.Stdout, "POST Result \n%v. Err %v", postRes, err)
+
+		fmt.Println("")
+		fmt.Println("")
+		fmt.Fprintf(os.Stdout, "JSON RESULT \n%v", string(res))
+
+
 	case "probe-agent":
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
 	case "apiserver":

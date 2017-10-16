@@ -7,6 +7,7 @@ import (
 	"portchecker/mock_http_server"
 	"net/http"
 	"io/ioutil"
+	"portchecker/db_models"
 )
 
 func StartCheckAgent(config models.Config, hostname string, timeout int) (*models.CheckResult, error) {
@@ -101,4 +102,48 @@ func TestFlux(checkResult *models.CheckResult) error {
 	return nil
 }
 
+// TODO add test
+func ProcessCheckAgentResult(config models.Config, checkResult models.CheckResult, hostname string) (*db_models.CheckAgent, error) {
 
+	checkAgent := db_models.CheckAgent{}
+
+	for _, route := range config.Routes {
+
+		if route.To == hostname {
+			// IN FLUX
+			checkAgent.InFlux = append(checkAgent.InFlux,
+				db_models.CheckAgentInFlux{
+					From:      route.From,
+					Port:      route.Port,
+					Requested: portInSlice(route.Port, checkResult.NotRequestedPort),
+				},
+			)
+		} else {
+			// OUT FLUX
+			found := false
+			for i:=0; i<len(checkResult.NotFunctionnalOutFlux) && !found; i++ {
+				found = checkResult.NotFunctionnalOutFlux[i].To == hostname
+			}
+
+			checkAgent.OutFlux = append(checkAgent.OutFlux,
+				db_models.CheckAgentOutFlux{
+					To: route.To,
+					Port: route.Port,
+					Status: found,
+				},
+			)
+		}
+
+	}
+	return &checkAgent, nil
+
+}
+
+func portInSlice(port int, list []int) bool {
+	for _, item := range list {
+		if item == port {
+			return true
+		}
+	}
+	return false
+}
