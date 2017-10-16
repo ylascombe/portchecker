@@ -1,0 +1,39 @@
+version: "2"
+
+services:
+#  container1:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile-ssh
+#      args:
+#        password: only4Test
+#  helloworld1:
+#    image: ubuntu:16.04
+#    command: /bin/bash
+#    stdin_open: true
+#    tty: true
+#    networks:
+#      - frontend
+#    ports:
+#      - "8002:80"
+#  helloworld2:
+#    image: ubuntu:16.04
+#    command: /bin/bash
+#    stdin_open: true
+#    tty: true
+#    networks:
+#      - frontend
+#    ports:
+#      - "8001:80"
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=api
+      - POSTGRES_PASSWORD=apipass
+      - POSTGRES_DB=api
+    ports:
+      - "5432:5432"
+
+#networks:
+#  frontend:
+#  backend:
