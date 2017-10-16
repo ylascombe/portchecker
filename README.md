@@ -27,7 +27,31 @@ Server mode list :
 - apiserver: receives report from agents, persist them into database
 - graphviz: presents dashboard graphics (d3js)
 
+# Params list
+
+```
+usage: portchecker <mode> <mappingFileUrl> <analysis_id>
+```
+
+__Mode__: run mode. Must be one of : 
+* check-agent
+* probe-agent
+* apiserver
+* graphviz
+
+__mappingFileUrl__ : local path to file that contains the description of fluxes to tests
+
+__analysis_id__: ID that identify the analysis number (agents have no valid solution to determine which is the current test session ID)
+
 # Requirements
 - database
 
-The agents are launched via Ansible, create their report and send to the server API. Max. Execution = 2 min
+=> For now, provisionned with docker-compose.yml file : only for dev mode
+
+# Global launch mode
+
+* Start apiserver
+* Launch agents on each instance to test : The agents can be launched via Ansible, create their report and send to the server API. Max. Execution = 2 min
+* Launch graphviz to generate static web server that contains files to generate D3JS reports. Datas in graph have been extracted by apiserver
+
+
