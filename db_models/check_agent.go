@@ -6,6 +6,8 @@ type CheckAgent struct {
 	gorm_custom.GormModelCustom
 
 	Hostname  string `json:"hostname" yaml:"hostname"`
+	AnalysisId int `json:"analysis_id" yaml:"analysis_id"`
+
 	InFlux []CheckAgentInFlux `json:"in_flux" yaml:"in_flux"`
 	OutFlux []CheckAgentOutFlux `json:"out_flux" yaml:"out_flux"`
 }

@@ -9,10 +9,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"bytes"
+	"strconv"
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: portchecker [mode in [check-agent|probe-agent|apiserver|graphviz] ]\n")
+	fmt.Fprintf(os.Stderr, "usage: portchecker <mode in [check-agent|probe-agent|apiserver|graphviz]> <mappingFileUrl> <analysis_id>\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
@@ -21,15 +22,24 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	serverUrl := "http://localhost:8090/v1/hostname/%v/check_agents/"
+	serverUrl := "http://localhost:8090/v1/hostname/%v/analysis_id/%v/check_agents/"
+
 	args := flag.Args()
-	if len(args) < 2 {
+	if len(args) < 3 {
 		fmt.Fprintf(os.Stderr, "Portchecker mode or config file path are missing .")
 		os.Exit(1)
 	}
 
 	mode := args[0]
 	configFilePath := args[1]
+	analysisIdStr := args[2]
+	analysisId, err := strconv.Atoi(analysisIdStr)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "analysis_id parameter is invalid. %v", err)
+		os.Exit(3)
+	}
+
 	fmt.Println("Ask to start in", mode, " mode")
 	config, err := utils.UnmarshallFromFile(configFilePath)
 
@@ -51,7 +61,7 @@ func main() {
 		fmt.Println("")
 		res, _ := json.Marshal(checkAgent)
 
-		finalUrl := fmt.Sprintf(serverUrl, hostname)
+		finalUrl := fmt.Sprintf(serverUrl, hostname, analysisId)
 		postRes, err := http.Post(finalUrl, "application/json", bytes.NewBuffer(res))
 		fmt.Fprintf(os.Stdout, "POST Result \n%v. Err %v", postRes, err)
 

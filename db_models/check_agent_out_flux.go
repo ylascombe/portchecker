@@ -1,6 +1,8 @@
 package db_models
 
-import "portchecker/gorm_custom"
+import (
+	"portchecker/gorm_custom"
+)
 
 type CheckAgentOutFlux struct {
 	gorm_custom.GormModelCustom

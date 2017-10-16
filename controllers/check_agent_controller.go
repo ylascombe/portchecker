@@ -6,6 +6,7 @@ import (
 	"portchecker/db_models"
 	"portchecker/services"
 	"fmt"
+	"strconv"
 )
 
 func FetchAllCheckAgent(c *gin.Context) {
@@ -38,10 +39,22 @@ func FetchAllCheckAgent(c *gin.Context) {
 func CreateCheckAgentReport(c *gin.Context) {
 
 	hostname := c.Param("hostname")
+	analysisIdStr := c.Param("analysis_id")
+	analysisId, err := strconv.Atoi(analysisIdStr)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError,
+			gin.H{
+				"status" : http.StatusInternalServerError,
+				"message" : "Invalid analysis_id parameter",
+			},
+		)
+		return
+	}
 	fmt.Println("Create checkAgent result for hostname", hostname)
 	var checkAgentJSON db_models.CheckAgent
 
-	err := c.BindJSON(&checkAgentJSON)
+	err = c.BindJSON(&checkAgentJSON)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status" : http.StatusBadRequest,
@@ -50,6 +63,8 @@ func CreateCheckAgentReport(c *gin.Context) {
 		})
 	} else {
 		checkAgentJSON.Hostname = hostname
+
+		checkAgentJSON.AnalysisId = analysisId
 		checkAgent, err := services.CreateCheckAgentReport(checkAgentJSON)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
@@ -66,4 +81,33 @@ func CreateCheckAgentReport(c *gin.Context) {
 			})
 		}
 	}
+}
+
+func ExtractReport(c *gin.Context) {
+	analysisIdStr := c.Param("analysis_id")
+	analysisId, err := strconv.Atoi(analysisIdStr)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError,
+			gin.H{
+				"status" : http.StatusInternalServerError,
+				"message" : "Invalid analysis_id parameter",
+			},
+		)
+		return
+	}
+
+	checkAgents, err := services.FetchAllReportForAnalysis(analysisId)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError,
+			gin.H{
+				"status" : http.StatusInternalServerError,
+				"message" : err,
+			},
+		)
+		return
+	}
+
+	c.JSON(http.StatusOK, checkAgents)
 }
