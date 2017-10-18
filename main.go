@@ -22,11 +22,17 @@ func main() {
 	flag.Usage = usage
 	flag.Parse()
 
-	serverUrl := "http://localhost:8090/v1/hostname/%v/analysis_id/%v/check_agents/"
+	apiServerUrl := os.Getenv("APISERVER_URL")
+
+	if os.Getenv("APISERVER_URL") == "" {
+		fmt.Fprintf(os.Stdout, "WARN: APISERVER_URL env var is missing, using default localhost one.\n")
+		apiServerUrl = "http://localhost:8090"
+	}
+	hostname, _ := os.Hostname()
 
 	args := flag.Args()
 	if len(args) < 3 {
-		fmt.Fprintf(os.Stderr, "Portchecker mode or config file path are missing .")
+		fmt.Fprintf(os.Stderr, "Portchecker mode or config file path are missing.\n")
 		os.Exit(1)
 	}
 
@@ -34,6 +40,8 @@ func main() {
 	configFilePath := args[1]
 	analysisIdStr := args[2]
 	analysisId, err := strconv.Atoi(analysisIdStr)
+
+	finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/check_agents/", apiServerUrl, hostname, analysisId)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "analysis_id parameter is invalid. %v", err)
@@ -49,7 +57,6 @@ func main() {
 	}
 	switch mode {
 	case "check-agent":
-		hostname, _ := os.Hostname()
 		checkResult, err := module.StartCheckAgent(*config, hostname, 20)
 
 		if err != nil {
@@ -61,7 +68,7 @@ func main() {
 		fmt.Println("")
 		res, _ := json.Marshal(checkAgent)
 
-		finalUrl := fmt.Sprintf(serverUrl, hostname, analysisId)
+
 		postRes, err := http.Post(finalUrl, "application/json", bytes.NewBuffer(res))
 		fmt.Fprintf(os.Stdout, "POST Result \n%v. Err %v", postRes, err)
 
@@ -73,7 +80,6 @@ func main() {
 	case "probe-agent":
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
 	case "apiserver":
-		fmt.Fprintf(os.Stderr, "Not implemented\n")
 		module.StartApiServer()
 
 	case "graphviz":
