@@ -19,7 +19,7 @@ func StartCheckAgent(config models.Config, hostname string, timeout int) (*model
 
 	checkResult := models.CheckResult{ActionList: actionList}
 
-	err = CreateMockServers(&checkResult, timeout, mock_http_server.CreateListenServer)
+	err = CreateMockServers(&checkResult, timeout, mock_http_server.CreateTCPListenServer)
 	if err != nil {
 		return nil, err
 	}

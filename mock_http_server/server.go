@@ -6,27 +6,11 @@ import (
 	"log"
 	"time"
 	"portchecker/models"
+	"net"
 )
 
-// TODO Improve this class, currently, this is a experimental one
 
-//func handler(w http.ResponseWriter, r *http.Request) {
-//	hostname, _ := os.Hostname()
-//	fmt.Fprintf(w, "Hi, I'm %s", hostname)
-//}
-//
-//func niceHello(w http.ResponseWriter, r *http.Request) {
-//	hostname, _ := os.Hostname()
-//	fmt.Fprintf(w, "Hi %s, I'm %s", r.URL.Path[1:], hostname)
-//}
-//
-//func main() {
-//	http.HandleFunc("/", niceHello)
-//	http.ListenAndServe(":8080", nil)
-//}
-
-
-func CreateListenServer(port int, timeout int, channel chan models.MockServerResult) {
+func CreateHTTPListenServer(port int, timeout int, channel chan models.MockServerResult) {
 
 	srv := &http.Server{Addr: fmt.Sprintf(":%v", port)}
 
@@ -50,4 +34,58 @@ func sayHello(channel chan models.MockServerResult) func(http.ResponseWriter, *h
 		channel <- models.MockServerResult{Status:0}
 		fmt.Fprintf(w, "Hello")
 	}
+}
+
+func CreateTCPListenServer(port int, timeout int, channel chan models.MockServerResult) {
+
+	listenPort := fmt.Sprintf(":%v", port)
+	fmt.Println("ListenPort:", listenPort)
+	// Listen for incoming connections.
+	listener, err := net.Listen("tcp", listenPort)
+
+	// Close the listener when the application closes.
+	// defer listener.Close()
+	fmt.Println("Listening on " + listenPort)
+
+	if err != nil {
+		fmt.Println("Error listening:", err.Error())
+		channel <- models.MockServerResult{Status:-1}
+		return
+	}
+
+	go func() {
+		for {
+			// Listen for an incoming connection.
+			conn, err := listener.Accept()
+			if err != nil {
+				fmt.Println("Error accepting: ", err.Error())
+				channel <- models.MockServerResult{Status:-1}
+				return
+			}
+			// Handle connections in a new goroutine.
+			go handleTCPRequest(conn, channel)
+		}
+	}()
+
+	time.Sleep(time.Duration(timeout) * time.Second)
+	listener.Close()
+	channel <- models.MockServerResult{Status:-1}
+
+}
+
+
+func handleTCPRequest(conn net.Conn, channel chan models.MockServerResult) {
+	// Make a buffer to hold incoming data.
+	buf := make([]byte, 1024)
+	// Read the incoming connection into the buffer.
+	_, err := conn.Read(buf)
+	if err != nil {
+		fmt.Println("Error reading:", err.Error())
+	}
+	// Send a response back to person contacting us.
+	conn.Write([]byte("Message received."))
+	// Close the connection when you're done with it.
+	conn.Close()
+
+	channel <- models.MockServerResult{Status:0}
 }
