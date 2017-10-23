@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"bytes"
 	"strconv"
+	"portchecker/port_scanner"
 )
 
 func usage() {
@@ -32,7 +33,7 @@ func main() {
 
 	args := flag.Args()
 	if len(args) < 3 {
-		fmt.Fprintf(os.Stderr, "Portchecker mode or config file path are missing.\n")
+		usage()
 		os.Exit(1)
 	}
 
@@ -78,7 +79,8 @@ func main() {
 
 
 	case "probe-agent":
-		fmt.Fprintf(os.Stderr, "Not implemented\n")
+		port_scanner.FindOpenedPort(1, 15000)
+
 	case "apiserver":
 		module.StartApiServer()
 
