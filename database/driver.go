@@ -25,4 +25,5 @@ func AutoMigrateDB(db *gorm.DB) {
 	db.AutoMigrate(&db_models.CheckAgent{})
 	db.AutoMigrate(&db_models.CheckAgentInFlux{})
 	db.AutoMigrate(&db_models.CheckAgentOutFlux{})
+	db.AutoMigrate(&db_models.ProbeAgent{})
 }

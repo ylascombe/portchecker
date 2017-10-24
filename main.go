@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"bytes"
 	"strconv"
-	"portchecker/port_scanner"
 )
 
 func usage() {
@@ -25,7 +24,7 @@ func main() {
 
 	apiServerUrl := os.Getenv("APISERVER_URL")
 
-	if os.Getenv("APISERVER_URL") == "" {
+	if apiServerUrl == "" {
 		fmt.Fprintf(os.Stdout, "WARN: APISERVER_URL env var is missing, using default localhost one.\n")
 		apiServerUrl = "http://localhost:8090"
 	}
@@ -42,7 +41,7 @@ func main() {
 	analysisIdStr := args[2]
 	analysisId, err := strconv.Atoi(analysisIdStr)
 
-	finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/check_agents/", apiServerUrl, hostname, analysisId)
+
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "analysis_id parameter is invalid. %v", err)
@@ -70,6 +69,7 @@ func main() {
 		res, _ := json.Marshal(checkAgent)
 
 
+		finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/check_agents/", apiServerUrl, hostname, analysisId)
 		postRes, err := http.Post(finalUrl, "application/json", bytes.NewBuffer(res))
 		fmt.Fprintf(os.Stdout, "POST Result \n%v. Err %v", postRes, err)
 
@@ -79,7 +79,8 @@ func main() {
 
 
 	case "probe-agent":
-		port_scanner.FindOpenedPort(1, 15000)
+		finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/probe_agent/", apiServerUrl, hostname, analysisId)
+		module.ProbeAgent(hostname, analysisId, finalUrl)
 
 	case "apiserver":
 		module.StartApiServer()
