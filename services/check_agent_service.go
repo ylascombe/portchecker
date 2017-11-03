@@ -82,3 +82,96 @@ func FetchAllReportForAnalysis(analysisId int) (*[]models.ReportResult, error) {
 	return &reportResults, nil
 
 }
+
+
+func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
+
+	db := database.NewDBDriver()
+	defer db.Close()
+
+	var checkAgents []db_models.CheckAgent
+	err := db.Where("analysis_id = ?", analysisId).Find(&checkAgents).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	nodes := make(map[string]models.VisjsNode)
+	edges := make(map[string]models.VisjsEdge)
+
+	for _, item := range checkAgents {
+
+
+		_, ok := nodes[item.Hostname]
+
+		// add node in map if still does not exists
+		if ! ok {
+			nodes[item.Hostname] = models.VisjsNode{
+				Id: len(nodes),
+				Label: item.Hostname,
+				Title: item.Hostname,
+			}
+		}
+
+		var outFluxes = []db_models.CheckAgentOutFlux{}
+		db.Model(&item).Related(&outFluxes)
+
+		for _, outFlux := range outFluxes {
+
+			edgeKey := fmt.Sprintf("%v-%v-%v", item.Hostname, outFlux.To, outFlux.Port)
+			_, ok = edges[edgeKey]
+
+			color := "#31B404" // green
+			if ! outFlux.Status {
+				color = "#DF0101" // red
+			}
+			if !ok {
+				edges[edgeKey] = models.VisjsEdge{
+					To: outFlux.To,
+					From: item.Hostname,
+					Label: fmt.Sprintf("%v", outFlux.Port),
+					Color: color,
+				}
+			}
+		}
+
+		var inFluxes = []db_models.CheckAgentInFlux{}
+		db.Model(&item).Related(&inFluxes)
+
+		for _, inFlux := range inFluxes {
+			edgeKey := fmt.Sprintf("%v-%v-%v", inFlux.From, item.Hostname, inFlux.Port)
+			_, ok = edges[edgeKey]
+
+			color := "#31B404" // green
+			if ! inFlux.Requested {
+				color = "#DF0101" // red
+			}
+			if !ok {
+				edges[edgeKey] = models.VisjsEdge{
+					To: item.Hostname,
+					From: inFlux.From,
+					Label: fmt.Sprintf("%v", inFlux.Port),
+					Color: color,
+				}
+			}
+		}
+
+	}
+
+	arrayNode := []models.VisjsNode{}
+	for _, value := range nodes {
+		arrayNode = append(arrayNode, value)
+	}
+
+	arrayEdges := []models.VisjsEdge{}
+	for _, value := range edges {
+		arrayEdges = append(arrayEdges, value)
+	}
+
+	graph := models.VisjsGraph{
+		Nodes: arrayNode,
+		Edges: arrayEdges,
+	}
+
+	return &graph, nil
+}

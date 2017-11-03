@@ -97,7 +97,7 @@ func ExtractReport(c *gin.Context) {
 		return
 	}
 
-	checkAgents, err := services.FetchAllReportForAnalysis(analysisId)
+	graph, err := services.FetchAllReportForAnalysisV2(analysisId)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError,
@@ -109,5 +109,5 @@ func ExtractReport(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, checkAgents)
+	c.JSON(http.StatusOK, graph)
 }
