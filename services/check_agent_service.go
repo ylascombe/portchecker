@@ -102,16 +102,7 @@ func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
 	for _, item := range checkAgents {
 
 
-		_, ok := nodes[item.Hostname]
-
-		// add node in map if still does not exists
-		if ! ok {
-			nodes[item.Hostname] = models.VisjsNode{
-				Id: len(nodes),
-				Label: item.Hostname,
-				Title: item.Hostname,
-			}
-		}
+		nodes = addNodeIfNotExist(nodes, item.Hostname)
 
 		var outFluxes = []db_models.CheckAgentOutFlux{}
 		db.Model(&item).Related(&outFluxes)
@@ -119,7 +110,7 @@ func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
 		for _, outFlux := range outFluxes {
 
 			edgeKey := fmt.Sprintf("%v-%v-%v", item.Hostname, outFlux.To, outFlux.Port)
-			_, ok = edges[edgeKey]
+			_, ok := edges[edgeKey]
 
 			color := "#31B404" // green
 			if ! outFlux.Status {
@@ -127,12 +118,15 @@ func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
 			}
 			if !ok {
 				edges[edgeKey] = models.VisjsEdge{
-					To: outFlux.To,
-					From: item.Hostname,
+					To: nodes[outFlux.To].Id,
+					From: nodes[item.Hostname].Id,
 					Label: fmt.Sprintf("%v", outFlux.Port),
 					Color: color,
+					Arrows: "to",
 				}
 			}
+
+			nodes = addNodeIfNotExist(nodes, outFlux.To)
 		}
 
 		var inFluxes = []db_models.CheckAgentInFlux{}
@@ -140,7 +134,7 @@ func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
 
 		for _, inFlux := range inFluxes {
 			edgeKey := fmt.Sprintf("%v-%v-%v", inFlux.From, item.Hostname, inFlux.Port)
-			_, ok = edges[edgeKey]
+			_, ok := edges[edgeKey]
 
 			color := "#31B404" // green
 			if ! inFlux.Requested {
@@ -148,12 +142,15 @@ func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
 			}
 			if !ok {
 				edges[edgeKey] = models.VisjsEdge{
-					To: item.Hostname,
-					From: inFlux.From,
+					To: nodes[item.Hostname].Id,
+					From: nodes[inFlux.From].Id,
 					Label: fmt.Sprintf("%v", inFlux.Port),
 					Color: color,
+					Arrows: "to",
 				}
 			}
+
+			nodes = addNodeIfNotExist(nodes, inFlux.From)
 		}
 
 	}
@@ -174,4 +171,19 @@ func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
 	}
 
 	return &graph, nil
+}
+
+func addNodeIfNotExist(nodes map[string]models.VisjsNode, nodeName string) map[string]models.VisjsNode {
+	_, ok := nodes[nodeName]
+
+	// add node in map if still does not exists
+	if ! ok {
+		nodes[nodeName] = models.VisjsNode{
+			Id: len(nodes),
+			Label: nodeName,
+			Title: nodeName,
+		}
+	}
+
+	return nodes
 }
