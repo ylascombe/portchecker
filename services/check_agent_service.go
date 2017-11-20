@@ -121,7 +121,11 @@ func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
 					To: nodes[outFlux.To].Id,
 					From: nodes[item.Hostname].Id,
 					Label: fmt.Sprintf("%v", outFlux.Port),
-					Color: color,
+					Color: models.VisjsColor{
+						Color: color,
+						Inherit: "from",
+						Opacity: "1.0",
+					},
 					Arrows: "to",
 				}
 			}
@@ -145,7 +149,11 @@ func FetchAllReportForAnalysisV2(analysisId int) (*models.VisjsGraph, error) {
 					To: nodes[item.Hostname].Id,
 					From: nodes[inFlux.From].Id,
 					Label: fmt.Sprintf("%v", inFlux.Port),
-					Color: color,
+					Color: models.VisjsColor{
+						Color: color,
+						Inherit: "from",
+						Opacity: "1.0",
+					},
 					Arrows: "to",
 				}
 			}
