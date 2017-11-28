@@ -5,11 +5,9 @@ import (
 	"github.com/anvie/port-scanner"
 	"fmt"
 	"portchecker/db_models"
-	"bytes"
-	"os"
-	"net/http"
 	"encoding/json"
 	"strings"
+	"portchecker/services"
 )
 
 const CONCURRENT_THREADS_NUMBER = 200
@@ -27,12 +25,7 @@ func ProbeAgent(hostname string, analysisId int, postUrl string) {
 
 	res, _ := json.Marshal(probeAgent)
 
-	fmt.Println("")
-	fmt.Println("")
-	fmt.Println(string(res))
-	postRes, err := http.Post(postUrl, "application/json", bytes.NewBuffer(res))
-	fmt.Fprintf(os.Stdout, "POST Result \n%v. Err %v", postRes, err)
-
+	services.SendResultToApiserver(postUrl, "probe-agent", res)
 }
 
 func FindOpenedPort(portStart int, portEnds int) []int {

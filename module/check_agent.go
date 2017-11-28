@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"io/ioutil"
 	"portchecker/db_models"
+	"encoding/json"
+	"portchecker/services"
 )
 
 func StartCheckAgent(config models.Config, hostname string, timeout int) (*models.CheckResult, error) {
@@ -103,7 +105,7 @@ func TestFlux(checkResult *models.CheckResult) error {
 }
 
 // TODO add test
-func ProcessCheckAgentResult(config models.Config, checkResult models.CheckResult, hostname string) (*db_models.CheckAgent, error) {
+func ProcessCheckAgentResult(config models.Config, checkResult models.CheckResult, hostname string, postUrl string) error {
 
 	checkAgent := db_models.CheckAgent{}
 
@@ -135,9 +137,13 @@ func ProcessCheckAgentResult(config models.Config, checkResult models.CheckResul
 		}
 
 	}
-	return &checkAgent, nil
 
+	res, _ := json.Marshal(checkAgent)
+	services.SendResultToApiserver(postUrl, "check-agent", res)
+
+	return nil
 }
+
 
 func portInSlice(port int, list []int) bool {
 	for _, item := range list {

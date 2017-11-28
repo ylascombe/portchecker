@@ -6,9 +6,6 @@ import (
 	"portchecker/module"
 	"fmt"
 	"flag"
-	"encoding/json"
-	"net/http"
-	"bytes"
 	"strconv"
 )
 
@@ -63,25 +60,12 @@ func main() {
 			fmt.Fprintf(os.Stderr, "An error occurred %v", err)
 		}
 
-		checkAgent, err := module.ProcessCheckAgentResult(*config, *checkResult, hostname)
-		fmt.Println("")
-		fmt.Println("")
-		res, _ := json.Marshal(checkAgent)
-
-
 		finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/check_agents/", apiServerUrl, hostname, analysisId)
-		postRes, err := http.Post(finalUrl, "application/json", bytes.NewBuffer(res))
-		fmt.Fprintf(os.Stdout, "POST Result \n%v. Err %v", postRes, err)
-
-		fmt.Println("")
-		fmt.Println("")
-		fmt.Fprintf(os.Stdout, "JSON RESULT \n%v", string(res))
-
+		err = module.ProcessCheckAgentResult(*config, *checkResult, hostname, finalUrl)
 
 	case "probe-agent":
 		finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/probe_agent/", apiServerUrl, hostname, analysisId)
 		module.ProbeAgent(hostname, analysisId, finalUrl)
-
 	case "apiserver":
 		module.StartApiServer()
 
