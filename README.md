@@ -30,7 +30,14 @@ Server mode list :
 # Params list
 
 ```
-usage: portchecker <mode> <mappingFileUrl> <analysis_id>
+usage: 
+    portchecker apiserver
+      or
+    portchecker graphviz
+      or
+    portchecker check-agent --mapping_file_url<mappingFileUrl> --analysis_id <analysis_id>
+      or
+    portchecker probe-agent --analysis_id <analysis_id>
 ```
 
 __Mode__: run mode. Must be one of : 
