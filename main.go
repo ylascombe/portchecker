@@ -10,7 +10,14 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: portchecker <mode in [check-agent|probe-agent|apiserver|graphviz]> <mappingFileUrl> <analysis_id>\n")
+	fmt.Fprintf(os.Stderr, "usage: \n" +
+		"\tportchecker apiserver\n" +
+		"or\n" +
+		"\tportchecker graphviz\n" +
+		"or\n" +
+		"\tportchecker check-agent <mappingFileUrl> <analysis_id>\n" +
+		"or\n" +
+		"\tportchecker probe-agent <analysis_id>\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
@@ -28,32 +35,39 @@ func main() {
 	hostname, _ := os.Hostname()
 
 	args := flag.Args()
-	if len(args) < 3 {
+
+	if len(args) < 1 {
 		usage()
 		os.Exit(1)
 	}
 
 	mode := args[0]
-	configFilePath := args[1]
-	analysisIdStr := args[2]
-	analysisId, err := strconv.Atoi(analysisIdStr)
+	fmt.Println(fmt.Sprintf("Ask to start in %v mode", mode))
 
-
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "analysis_id parameter is invalid. %v", err)
-		os.Exit(3)
-	}
-
-	fmt.Println("Ask to start in", mode, " mode")
-	config, err := utils.UnmarshallFromFile(configFilePath)
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot load config from given path : %v. Err : %v", configFilePath, err)
-		os.Exit(1)
-	}
 	switch mode {
 	case "check-agent":
+
+		if len(args) < 3 {
+			usage()
+			os.Exit(1)
+		}
+
+		configFilePath := args[1]
+		analysisIdStr := args[2]
+		analysisId, err := strconv.Atoi(analysisIdStr)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "analysis_id parameter is invalid. %v", err)
+			os.Exit(3)
+		}
+
+		config, err := utils.UnmarshallFromFile(configFilePath)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Cannot load config from given path : %v. Err : %v", configFilePath, err)
+			os.Exit(1)
+		}
+
 		checkResult, err := module.StartCheckAgent(*config, hostname, 20)
 
 		if err != nil {
@@ -64,6 +78,20 @@ func main() {
 		err = module.ProcessCheckAgentResult(*config, *checkResult, hostname, finalUrl)
 
 	case "probe-agent":
+
+		if len(args) < 2 {
+			usage()
+			os.Exit(1)
+		}
+
+		analysisIdStr := args[1]
+		analysisId, err := strconv.Atoi(analysisIdStr)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "analysis_id parameter is invalid. %v", err)
+			os.Exit(3)
+		}
+
 		finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/probe_agent/", apiServerUrl, hostname, analysisId)
 		module.ProbeAgent(hostname, analysisId, finalUrl)
 	case "apiserver":

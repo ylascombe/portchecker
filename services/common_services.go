@@ -19,6 +19,6 @@ func SendResultToApiserver(apiserverUrl string, mode string, res []byte) {
 
 	err = ioutil.WriteFile(fmt.Sprintf("/tmp/%v-result.json", mode), res, 0644)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot write to /tmp/check-agent-result.json")
+		fmt.Fprintf(os.Stderr, "Cannot write to /tmp/%v-result.json", mode)
 	}
 }
