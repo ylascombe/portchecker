@@ -6,72 +6,72 @@ import (
 	"portchecker/module"
 	"fmt"
 	"flag"
+	"github.com/alexflint/go-arg"
+	"portchecker/conf"
+	"errors"
 )
 
-var mode string;
-var configFilePath string
-var analysisId int
-var quiet bool
+
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "usage: \n" +
-		"\tportchecker\n" +
-		"or\n" +
 		"\tportchecker apiserver\n" +
 		"or\n" +
 		"\tportchecker graphviz\n" +
 		"or\n" +
-		"\tportchecker check-agent --mapping_file_url<mappingFileUrl> --analysis_id <analysis_id>\n" +
+		"\tportchecker check-agent --mapping_file_url<mappingFileUrl> --analysisid <analysisid>\n" +
 		"or\n" +
-		"\tportchecker probe-agent --analysis_id <analysis_id>\n\nParameters desc:\n")
+		"\tportchecker probe-agent --analysisid <analysisid>\n\nParameters desc:\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
-
-func init() {
-	flag.StringVar(&mode, "mode", "apiserver", "portchecker mode in [apiserver|graphviz|check-agent|probe-agent]")
-	flag.IntVar(&analysisId, "analysis_id", 1, "unique anlysis id")
-	flag.StringVar(&configFilePath, "mapping_file_url", "", "Local path to mapping description file")
-	flag.BoolVar(&quiet, "quiet", false, "Log quiet mode")
-}
+//
+//func init() {
+//	config := conf.NewConfig()
+//	config.Mode = *flag.String("mode", "apiserver", "portchecker mode in [apiserver|graphviz|check-agent|probe-agent]")
+//	config.AnalysisId = *flag.Int( "analysisid", 1, "unique anlysis id")
+//	config.ConfigFilePath = *flag.String( "mapping_file_url", "", "Local path to mapping description file")
+//	config.Verbose = *flag.Bool("verbose", false, "Log verbose mode")
+//}
 
 func main() {
-	flag.Usage = usage
+	config := conf.NewConfig()
+	arg.MustParse(&config)
+
+
+	 flag.Usage = usage
 	flag.Parse()
 
-	checkParam()
+	paramErrors := checkParam(config)
 
-	apiServerUrl := os.Getenv("APISERVER_URL")
-
-	if apiServerUrl == "" {
-		fmt.Fprintf(os.Stdout, "WARN: APISERVER_URL env var is missing, using default localhost one.\n")
-		apiServerUrl = "http://localhost:8090"
+	if paramErrors != nil {
+		fmt.Fprintf(os.Stderr, "Invalid parameters %s\n", paramErrors)
+		os.Exit(1)
 	}
-	hostname, _ := os.Hostname()
 
-	fmt.Println(fmt.Sprintf("Ask to start in %v mode", mode))
+	if config.Verbose {
+		fmt.Println(fmt.Sprintf("Ask to start in %v mode", config.Mode))
+	}
 
-	switch mode {
+	switch config.Mode {
 	case "check-agent":
-		config, err := utils.UnmarshallFromFile(configFilePath)
+		networkConfig, err := utils.UnmarshallFromFile(config.ConfigFilePath)
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Cannot load config from given path : %v. Err : %v", configFilePath, err)
+			fmt.Fprintf(os.Stderr, "Cannot load config from given path : %v. Err : %v", config.ConfigFilePath, err)
 			os.Exit(1)
 		}
 
-		checkResult, err := module.StartCheckAgent(*config, hostname, 20)
+		checkResult, err := module.StartCheckAgent(*networkConfig, config)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "An error occurred %v", err)
 		}
 
-		finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/check_agents/", apiServerUrl, hostname, analysisId)
-		err = module.ProcessCheckAgentResult(*config, *checkResult, hostname, finalUrl)
+		err = module.ProcessCheckAgentResult(*networkConfig, *checkResult, config)
 
 	case "probe-agent":
-		finalUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/probe_agent/", apiServerUrl, hostname, analysisId)
-		module.ProbeAgent(hostname, analysisId, finalUrl)
+		module.ProbeAgent(config)
 	case "apiserver":
 		module.StartApiServer()
 
@@ -79,38 +79,50 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
 
 	default:
-		fmt.Fprintf(os.Stderr, "Invalid mode %s\n", mode)
+		fmt.Fprintf(os.Stderr, "Invalid mode %s\n", config.Mode)
 		os.Exit(1)
 	}
-
 
 	os.Exit(0)
 }
 
-func checkParam() {
+func checkParam(config conf.Config) error {
 	var required []string
-	switch mode {
+	switch config.Mode {
 	case "check-agent":
-		required = []string{"mode", "mapping_file_url", "analysis_id"}
+		required = []string{"mapping_file_url", "analysisid"}
 	case "probe-agent":
-		required = []string{"mode", "analysis_id"}
+		required = []string{"analysisid"}
 	case "apiserver":
-		required = []string{"mode"}
+		required = []string{}
 	case "graphviz":
-		required = []string{"mode"}
+		required = []string{}
 	default:
-		required = []string{"mode"}
+		required = []string{}
 	}
 
 	flag.Parse()
 
 	seen := make(map[string]bool)
 	flag.Visit(func(f *flag.Flag) { seen[f.Name] = true })
+
+	if len(required) > 0 {
+		return nil
+	}
+
+	missings := ""
 	for _, req := range required {
 		if !seen[req] {
 			// or possibly use `log.Fatalf` instead of:
-			fmt.Fprintf(os.Stderr, "ERROR: missing required -%s argument/flag\n\n", req)
-			usage()
+			msg := fmt.Sprintf("ERROR: missing required -%s argument/flag\n\n", req)
+			missings += "\n" + msg
 		}
 	}
+
+	if len(missings) > 0 {
+		return errors.New(missings)
+	} else {
+		return nil
+	}
+
 }

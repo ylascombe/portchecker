@@ -10,18 +10,19 @@ import (
 	"portchecker/db_models"
 	"encoding/json"
 	"portchecker/services"
+	"portchecker/conf"
 )
 
-func StartCheckAgent(config models.Config, hostname string, timeout int) (*models.CheckResult, error) {
+func StartCheckAgent(networkConfig models.Config, config conf.Config) (*models.CheckResult, error) {
 
-	actionList, err := MakeActionList(config, hostname)
+	actionList, err := MakeActionList(networkConfig, config.Hostname)
 	if err != nil {
 		return nil, err
 	}
 
 	checkResult := models.CheckResult{ActionList: actionList}
 
-	err = CreateMockServers(&checkResult, timeout, mock_http_server.CreateTCPListenServer)
+	err = CreateMockServers(&checkResult, config.Timeout, mock_http_server.CreateTCPListenServer)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +106,14 @@ func TestFlux(checkResult *models.CheckResult) error {
 }
 
 // TODO add test
-func ProcessCheckAgentResult(config models.Config, checkResult models.CheckResult, hostname string, postUrl string) error {
+func ProcessCheckAgentResult(networkConfig models.Config, checkResult models.CheckResult, config conf.Config) error {
 
+	postUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/check_agents/", config.Hostname, config.AnalysisId)
 	checkAgent := db_models.CheckAgent{}
 
-	for _, route := range config.Routes {
+	for _, route := range networkConfig.Routes {
 
-		if route.To == hostname {
+		if route.To == config.Hostname {
 			// IN FLUX
 			checkAgent.InFlux = append(checkAgent.InFlux,
 				db_models.CheckAgentInFlux{
@@ -124,7 +126,7 @@ func ProcessCheckAgentResult(config models.Config, checkResult models.CheckResul
 			// OUT FLUX
 			found := false
 			for i:=0; i<len(checkResult.NotFunctionnalOutFlux) && !found; i++ {
-				found = checkResult.NotFunctionnalOutFlux[i].To == hostname
+				found = checkResult.NotFunctionnalOutFlux[i].To == config.Hostname
 			}
 
 			checkAgent.OutFlux = append(checkAgent.OutFlux,

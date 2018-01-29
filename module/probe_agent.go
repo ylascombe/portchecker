@@ -1,25 +1,36 @@
 package module
 
 import (
-	"time"
 	"github.com/anvie/port-scanner"
 	"fmt"
 	"portchecker/db_models"
 	"encoding/json"
 	"strings"
 	"portchecker/services"
+	"portchecker/conf"
+	"time"
 )
 
-const CONCURRENT_THREADS_NUMBER = 200
-const TIMEOUT_DURATION = 100 * time.Millisecond
+func ProbeAgent(config conf.Config) {
 
-func ProbeAgent(hostname string, analysisId int, postUrl string) {
-	openedPorts := FindOpenedPort(1, 15000)
+	fmt.Println(config)
+	postUrl := fmt.Sprintf("%v/v1/hostname/%v/analysis_id/%v/probe_agent/", config.Hostname, config.AnalysisId)
+
+	if config.Verbose {
+		fmt.Printf("scanning port %d-%d...\n", config.ProbePortRangeStart, config.ProbePortRangeStop)
+	}
+
+	openedPorts := FindOpenedPort(
+		config.ProbePortRangeStart,
+		config.ProbePortRangeStop,
+		config.ProbeTimeoutDuration,
+		config.ProbeConcurrentThreadsNumber,
+	)
 
 	probeAgent := db_models.ProbeAgent{
-		Hostname: hostname,
-		AnalysisId: analysisId,
-		OpenedPorts: openedPorts,
+		Hostname:          config.Hostname,
+		AnalysisId:        config.AnalysisId,
+		OpenedPorts:       openedPorts,
 		OpenedPortsString: strings.Trim(strings.Join(strings.Fields(fmt.Sprint(openedPorts)), ","), "[]"),
 	}
 
@@ -28,22 +39,13 @@ func ProbeAgent(hostname string, analysisId int, postUrl string) {
 	services.SendResultToApiserver(postUrl, "probe-agent", res)
 }
 
-func FindOpenedPort(portStart int, portEnds int) []int {
-	// scan localhost with a 2 second timeout per port in 5 concurrent threads
-	ps := portscanner.NewPortScanner("localhost", TIMEOUT_DURATION, CONCURRENT_THREADS_NUMBER)
+func FindOpenedPort(portStart int, portEnds int, timeoutDuration time.Duration, concurrentThreadsNumber int) []int {
 
+	// scan localhost with a 2 second timeout per port in 5 concurrent threads
+	ps := portscanner.NewPortScanner("localhost", timeoutDuration, concurrentThreadsNumber )
 
 	// get opened port
-	fmt.Printf("scanning port %d-%d...\n", portStart, portEnds)
-
 	openedPorts := ps.GetOpenedPort(portStart, portEnds)
-
-
-	// for i := 0; i < len(openedPorts); i++ {
- 		// port := openedPorts[i]
-		// fmt.Print(" ", port, " [open]")
-		// fmt.Println("  -->  ", ps.DescribePort(port))
-	// }
 
 	return openedPorts
 }
