@@ -9,6 +9,7 @@ import (
 	"time"
 	"net"
 	"net/http"
+	"portchecker/conf"
 )
 
 func TestMakeActionListHostnameNotConcerned(t *testing.T) {
@@ -133,7 +134,7 @@ routes:
       port: 9090
       mode: check
 ...`
-	config, err := utils.Unmarshall([]byte(YAML))
+	networkConfig, err := utils.Unmarshall([]byte(YAML))
 
 	f := func() {
 		time.Sleep(2 * time.Second)
@@ -141,7 +142,12 @@ routes:
 	}
 	// act
 	go f()
-	checkResult, err := StartCheckAgent(*config, "vm1-vlan1", 10)
+	config := conf.Config{
+		Mode: "check-agent",
+		Hostname: "vm1-vlan1",
+		Timeout: 10,
+	}
+	checkResult, err := StartCheckAgent(*networkConfig, config)
 
 	// assert
 	assert.Nil(t, err)
@@ -173,7 +179,7 @@ routes:
       port: 9090
       mode: check
 ...`
-	config, err := utils.Unmarshall([]byte(YAML))
+	networkConfig, err := utils.Unmarshall([]byte(YAML))
 
 	f := func() {
 		time.Sleep(2 * time.Second)
@@ -181,7 +187,13 @@ routes:
 	}
 	// act
 	go f()
-	checkResult, err := StartCheckAgent(*config, "vm1-vlan1", 10)
+	config := conf.Config{
+		Mode: "check-agent",
+		Hostname: "vm1-vlan1",
+		Timeout: 10,
+
+	}
+	checkResult, err := StartCheckAgent(*networkConfig, config)
 
 	// assert
 	assert.NotNil(t, err)
