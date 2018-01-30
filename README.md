@@ -50,6 +50,8 @@ __mappingFileUrl__ : local path to file that contains the description of fluxes 
 
 __analysis_id__: ID that identify the analysis number (agents have no valid solution to determine which is the current test session ID)
 
+_others settings__ : All constant defined in `conf/constants.go` can be overriden by and Environment variable with the same name.
+
 # Requirements
 - database
 
