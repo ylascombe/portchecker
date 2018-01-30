@@ -6,9 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/itsjamie/gin-cors"
 	"portchecker/controllers"
+	"fmt"
+	"portchecker/conf"
 )
 
-func StartApiServer() {
+func StartApiServer(config conf.Config) {
 	db := database.NewDBDriver()
 	database.AutoMigrateDB(db)
 
@@ -50,6 +52,6 @@ func StartApiServer() {
 		report.GET("/", controllers.ExtractReport)
 	}
 
-	router.Run(":8090")
+	router.Run(fmt.Sprintf(":%v", config.ApiServerListenPort))
 
 }

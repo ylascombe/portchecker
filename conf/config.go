@@ -26,6 +26,9 @@ type Config struct {
 
 	// Check Agent Config
 	Timeout int
+
+	// API server config
+	ApiServerListenPort int
 }
 
 func NewConfig() Config{
@@ -44,6 +47,8 @@ func NewConfig() Config{
 	res.ProbePortRangeStart = ParseIntEnvVar("PROBE_AGENT_CHECK_PORT_RANGE_START", PROBE_AGENT_CHECK_PORT_RANGE_START)
 	res.ProbePortRangeStop = ParseIntEnvVar("PROBE_AGENT_CHECK_PORT_RANGE_STOP", PROBE_AGENT_CHECK_PORT_RANGE_STOP)
 	res.Timeout = ParseIntEnvVar("CHECK_AGENT_TIMEOUT", CHECK_AGENT_TIMEOUT)
+
+	res.ApiServerListenPort = ParseIntEnvVar("APISERVER_LISTEN_PORT", APISERVER_LISTEN_PORT)
 
 	return res
 }

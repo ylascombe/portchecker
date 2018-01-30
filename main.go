@@ -73,7 +73,7 @@ func main() {
 	case "probe-agent":
 		module.ProbeAgent(config)
 	case "apiserver":
-		module.StartApiServer()
+		module.StartApiServer(config)
 
 	case "graphviz":
 		fmt.Fprintf(os.Stderr, "Not implemented\n")
