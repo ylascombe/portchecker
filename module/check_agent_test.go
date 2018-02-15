@@ -176,14 +176,14 @@ routes:
     # Test mock server
     - from: vm2-vlan2
       to: vm1-vlan1
-      port: 9090
+      port: 9091
       mode: check
 ...`
 	networkConfig, err := utils.Unmarshall([]byte(YAML))
 
 	f := func() {
 		time.Sleep(2 * time.Second)
-		http.Get("http://127.0.0.1:9090")
+		http.Get("http://127.0.0.1:9091")
 	}
 	// act
 	go f()
